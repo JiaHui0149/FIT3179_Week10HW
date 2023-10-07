@@ -111,7 +111,7 @@
     },
     {
       "data": {
-        "url": "../data/cause_of_deaths_with_population.csv"
+        "url": "https://raw.githubusercontent.com/JiaHui0149/FIT3179_Week10HW/main/data/cause_of_deaths_with_population.csv"
       },
       "transform": [
         {
