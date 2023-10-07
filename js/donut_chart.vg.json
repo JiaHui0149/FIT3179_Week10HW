@@ -1,0 +1,130 @@
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "title": {
+      "text": {
+        "signal": "'Top 5 Causes of Death in ' + countrySelector"
+      },
+      "fontSize": 18
+    },
+    "width": 1000,
+    "height": 400,
+    "config": {
+      "view": { "stroke": "transparent" },
+      "arc": {
+        "innerRadius": 180,
+        "padAngle": 0.01,
+        "cornerRadius": 4
+      },
+      "axis": {
+        "labelFontSize": 16
+      }
+    },
+    "data": {
+      "url": "../data/pivot_total_cases_of_countries.csv"
+    },
+    "params": [
+      {
+        "name": "countrySelector",
+        "value": "Malaysia",
+        "bind": {
+          "input": "select",
+          "options": [
+            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Anguilla", "Antigua and Barbuda", "Argentina", "Armenia", "Aruba", "Asia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia", "Bonaire Sint Eustatius and Saba", "Bosnia and Herzegovina", "Botswana", "Brazil", "British Virgin Islands", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Cayman Islands", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Cook Islands", "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czechia", "Democratic Republic of Congo", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Europe", "European Union", "Faeroe Islands", "Falkland Islands", "Fiji", "Finland", "France", "French Polynesia", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Gibraltar", "Greece", "Greenland", "Grenada", "Guatemala", "Guernsey", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "International", "Iran", "Iraq", "Ireland", "Isle of Man", "Israel", "Italy", "Jamaica", "Japan", "Jersey", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Macao", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico",  "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "North America", "North Macedonia", "Northern Cyprus", "Norway", "Oceania", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Pitcairn", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Helena", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Sint Maarten (Dutch part)", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South America", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor", "Togo", "Tokelau", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Turks and Caicos Islands", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican", "Venezuela", "Vietnam", "Wallis and Futuna", "World", "Yemen", "Zambia", "Zimbabwe"
+          ],
+          "name": "Select Country: "
+        }
+      }
+    ],
+   "transform": [
+    {
+      "filter": { "field": "Country/Territory", "equal": { "signal": "countrySelector" } }
+    },
+    {
+      "calculate": "toNumber(datum.Total_Cases)",
+      "as": "Total_Cases"
+    },
+    {
+      "window": [
+        { "op": "rank", "as": "rank" }
+      ],
+      "sort": [
+        { "field": "Total_Cases", "order": "descending" }
+      ]
+    },
+    {
+      "calculate": "datum['Cause']",
+      "as": "Cause"
+    },
+    {
+      "filter": { "field": "rank", "lte": 5 }
+    },
+    {
+      "joinaggregate":[
+        {
+          "op":"sum",
+          "field":"Total_Cases",
+          "as":"Total_Sum"
+        }
+      ],
+      "groupby":[]
+    },
+    {
+      "calculate":"datum.Total_Cases / datum.Total_Sum * 100",
+      "as":"Percentage"
+    }
+  ],
+  "mark": {
+    "type": "arc"
+  },
+  "encoding": {
+    "theta": { "field": "Total_Cases", "type": "quantitative", "stack": true },
+    "color": { "field": "Cause", "type": "nominal",
+    "legend": {
+      "orient": "top-left",
+      "padding": 15,
+      "labelFontSize": 12,
+      "layout": {
+        "anchor": "middle"
+      }
+    }
+  },
+  "fillOpacity": {
+    "condition": {"selection": "causes_highlight", "value": 1},
+    "value": 0.2
+  },
+    "tooltip": [
+      { "field": "Cause", "type": "nominal", "title": "Cause of Death" },
+      { "field": "Total_Cases", "type": "quantitative", "title": "Total Cases" }
+    ]
+     
+  },
+  "layer": [
+    
+    {
+      
+      "mark": {"type": "arc", "outerRadius": 100}
+    },
+    {
+      "selection": {
+        "causes_highlight": {
+        "type": "multi",
+        "fields": ["Cause"],
+        "bind": "legend"
+        }
+      },
+      "mark": {"type": "text", "radius": 200},
+      "transform": [
+        {
+          "calculate": "  + format(datum.Percentage, '.0f') + '%'",
+          "as": "combined_text"
+        }
+      ],
+      "encoding": {
+        "text": {"field": "combined_text", "type": "nominal"},
+        "opacity": {
+          "condition": {"selection": "causes_highlight", "value": 1},
+          "value": 0.2}
+      }
+    }
+  ]
+}

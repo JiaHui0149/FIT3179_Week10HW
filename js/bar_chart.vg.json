@@ -1,0 +1,40 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "width": 400,
+  "height": 400,
+  "data": {
+    "url": "../data/total_cases_of_diseases.csv"
+  },
+  "transform": [
+    {
+      "joinaggregate": [{"op": "sum", "field": "Total cases", "as": "total_cases"}],
+      "groupby": [] 
+    },
+    {
+      "calculate": "datum['Total cases'] / datum['total_cases']",
+      "as": "Percentage"
+    },
+    {
+      "sort": {"field": "Percentage", "order": "descending"} 
+    }
+  ],
+  "mark": "arc",
+  "encoding": {
+    "theta": {"field": "Percentage", "type": "quantitative", "stack": true},
+    "color": {"field": "Disease", "type": "nominal"},
+    "tooltip": [
+      {"field": "Disease", "type": "nominal"},
+      {"field": "Percentage", "type": "quantitative", "format": ".1%"} 
+    ]
+  },
+  "layer": [{
+    "mark": {"type": "arc", "outerRadius": 200}
+  }, {
+    "mark": {"type": "text", "radius": 150},
+    "encoding": {
+      "text": {"field": "Percentage", "type": "quantitative", "format": ".1%"},
+      "color": {"value": "black"}
+    }
+  }],
+  "title": "Distribution of Diseases by Percentage"
+}
